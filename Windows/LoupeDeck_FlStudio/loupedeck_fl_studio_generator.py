@@ -76,12 +76,23 @@ def generate_id():
 
 
 def convert_shortcut(shortcut_str):
+    # First handle the Alt/Opt special case
+    simplified_shortcut = shortcut_str
+    if 'Alt/Opt' in simplified_shortcut:
+        simplified_shortcut = simplified_shortcut.replace('Alt/Opt', 'Alt')
+    elif 'Opt/Alt' in simplified_shortcut:
+        simplified_shortcut = simplified_shortcut.replace('Opt/Alt', 'Alt')
+
+    # Create a clean version without slashes for processing
+    clean_shortcut_str = shortcut_str.replace('/', '')
+
     # Map shortcut keys to Loupedeck's format
     key_mapping = {
         'Ctrl': 'ControlOrCommand',
         'Cmd': 'ControlOrCommand',
         'Alt': 'AltOrOption',
         'Opt': 'AltOrOption',
+        'AltOpt': 'AltOrOption',
         'Shift': 'Shift',
         'Enter': 'Enter',
         'Space': 'Space',
@@ -102,11 +113,11 @@ def convert_shortcut(shortcut_str):
         'ArrowUp': 'ArrowUp', 'ArrowDown': 'ArrowDown', 'ArrowLeft': 'ArrowLeft', 'ArrowRight': 'ArrowRight'
     }
 
-    # Extract basic parts of the shortcut
-    parts = shortcut_str.replace('/', '').split('+')
+    # Extract parts of the shortcut
+    parts = clean_shortcut_str.split('+')
     processed_parts = []
 
-    # Process each part to match Loupedeck's format
+    # Process each part
     for part in parts:
         part = part.strip()
         if part in key_mapping:
@@ -116,10 +127,9 @@ def convert_shortcut(shortcut_str):
         elif part.startswith('NumPad'):
             processed_parts.append(part)
         else:
-            # For other keys, just use as is
             processed_parts.append(part)
 
-    # Join the processed parts with the appropriate separator
+    # Join the processed parts
     loupedeck_shortcut = '+'.join(processed_parts)
 
     # Define virtual key codes mapping (Windows)
@@ -143,43 +153,35 @@ def convert_shortcut(shortcut_str):
         'Multiply': 'win-106', 'Add': 'win-107', 'Subtract': 'win-109', 'Decimal': 'win-110', 'Divide': 'win-111',
     }
 
-    # Add specific formatting for Loupedeck
-    key_id = "67699721"  # Default ID used in the reference
-    formatted_shortcut = f"{loupedeck_shortcut}___{key_id}___{shortcut_str}___"
+    # Key ID used in reference
+    key_id = "67699721"
 
-    # Add virtual key code if available
-    vk_added = False
+    # Format the shortcut string
+    formatted_shortcut = f"{loupedeck_shortcut}___{key_id}___{simplified_shortcut}___"
+
+    # Add virtual key code
+    vk_code = None
     for part in processed_parts:
         if part in virtual_key_codes:
-            formatted_shortcut += virtual_key_codes[part]
-            vk_added = True
+            vk_code = virtual_key_codes[part]
+            formatted_shortcut += vk_code
             break
-
-    # If no specific virtual key was found, try to get one from the last part
-    if not vk_added and processed_parts:
-        last_part = processed_parts[-1]
-        # Handle NumPad keys specially
-        if last_part.startswith('NumPad'):
-            num = last_part[6:]
-            if num.isdigit() and 0 <= int(num) <= 9:
-                formatted_shortcut += f"win-{96 + int(num)}"
-                vk_added = True
 
     # Calculate modifier flag value
     modifier_value = 0
-    if "ControlOrCommand" in formatted_shortcut:
+    if "ControlOrCommand" in loupedeck_shortcut:
         modifier_value += 128
-    if "Shift" in formatted_shortcut:
+    if "Shift" in loupedeck_shortcut:
         modifier_value += 64
-    if "AltOrOption" in formatted_shortcut:
+    if "AltOrOption" in loupedeck_shortcut:
         modifier_value += 2
 
-    # Add modifier flag if any modifier is present
+    # Add modifier flag with literal ¤ character
     if modifier_value > 0:
         formatted_shortcut += f"#¤%&+?{modifier_value}"
 
-    # Add the key ID and closing part
-    formatted_shortcut += f"#¤%&+?{key_id}#¤%&+?44"
+    # Add key ID and closing part
+    formatted_shortcut += f"#¤%&+?{key_id}#¤%&+?30"
 
     return formatted_shortcut
 
@@ -219,6 +221,9 @@ def create_action(action_name, shortcut, group_name):
 
 
 def create_default_icon(action_id, display_name):
+    # Fix ellipsis characters in display names
+    display_name = display_name.replace("...", "…")
+
     # Base icon content from the reference files
     icon_content = {
         "backgroundColor": 4278190080,
