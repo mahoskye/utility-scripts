@@ -47,18 +47,34 @@ async function rollForwardTasks(tp) {
     const seen = new Set();
     const result = [];
     const boilerplate = "set up tasks for tomorrow";
+    let pendingHeading = null;
+    let pendingHeadingEmitted = false;
 
     for (let i = tasksHeader + 1; i < endIdx; i++) {
         const line = lines[i];
+
+        // Track sub-headings (h3+) so we can preserve them above their tasks
+        if (/^#{3,}\s+/.test(line)) {
+            pendingHeading = line;
+            pendingHeadingEmitted = false;
+            continue;
+        }
+
         const m = line.match(/^(\s*)-\s+\[\s\]\s+(.*)$/);
         if (!m) continue;
+        const indent = m[1];
         const text = m[2].trim();
         if (!text) continue;
         if (text.toLowerCase() === boilerplate) continue;
         const key = text.toLowerCase();
         if (seen.has(key)) continue;
         seen.add(key);
-        result.push(`- [ ] ${text}`);
+
+        if (pendingHeading && !pendingHeadingEmitted) {
+            result.push(pendingHeading);
+            pendingHeadingEmitted = true;
+        }
+        result.push(`${indent}- [ ] ${text}`);
     }
 
     return result.join("\n");
