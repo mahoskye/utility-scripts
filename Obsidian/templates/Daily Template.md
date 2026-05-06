@@ -17,7 +17,7 @@ Tags:
 ## Notes:
 ---
 
-## Daily Log
+## Daily Log:
 ---
 <% existingContent %>
 
