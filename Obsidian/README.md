@@ -9,7 +9,7 @@ This directory contains an Obsidian Templater template and the user scripts it d
 
 ## Usage
 
-In Obsidian, install the [Templater](https://github.com/SilentVoid13/Templater) plugin and point its settings at a vault folder containing copies of these files:
+In Obsidian, install the [Templater](https://github.com/SilentVoid13/Templater) community plugin and point its settings at a vault folder containing copies of these files:
 
 - Set the **Template folder location** to wherever you place the contents of `templates/`.
 - Set the **Script files folder location** to wherever you place the contents of `scripts/`.
